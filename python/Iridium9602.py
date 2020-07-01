@@ -7,15 +7,15 @@ import io
 import time
 import random
 import sys
-from virtual_iridium.smtp_stuff import sendMail 
-from virtual_iridium.imap_stuff import checkMessages
+from smtp_stuff import sendMail 
+from imap_stuff import checkMessages
 import socket
 import struct
 import asyncore
 from collections import deque
-from virtual_iridium.sbd_packets import assemble_mo_directip_packet
-from virtual_iridium.sbd_packets import parse_mt_directip_packet
-from virtual_iridium.sbd_packets import assemble_mt_directip_response
+from sbd_packets import assemble_mo_directip_packet
+from sbd_packets import parse_mt_directip_packet
+from sbd_packets import assemble_mt_directip_response
 
 AVERAGE_SBDIX_DELAY = 1     #TODO: implement randomness, average is ~30s
 STDEV_SBDIX_DELAY = 1 
@@ -139,7 +139,7 @@ def write_text(cmd,start_index):
     send_ok()
 
 def sbdi():
-    print 'AT+SBDI is not currently supported.  Still need to write this function.  Use AT+SBDIX instead'
+    print('AT+SBDI is not currently supported.  Still need to write this function.  Use AT+SBDIX instead')
     send_error()
 
 def sbdix():
@@ -195,7 +195,7 @@ def sbdix():
                     s.send(assemble_mo_directip_packet(imei, momsn, mtmsn, mo_buffer))
                     s.close()
                 except socket.error as msg:
-                    print "Failed to open {}:{}".format(mo_ip, mo_port)
+                    print("Failed to open {}:{}".format(mo_ip, mo_port))
                     s.close()                
                 mo_set = False
             if len(mt_messages) is not 0:
@@ -212,8 +212,8 @@ def sbdix():
     
     return_string = "\r\n+SBDIX: %d, %d, %d, %d, %d, %d\r\n" % (rpt,momsn,received_msg,mtmsn,received_msg_size,unread_msgs)
     #+SBDIX:<MO status>,<MOMSN>,<MT status>,<MTMSN>,<MT length>,<MT queued>
-    print "Sent:",return_string
-    ser.write(return_string)
+    print("Sent:",return_string)
+    ser.write(return_string.encode('utf-8'))
     send_ok()
         
     mo_set = False
@@ -224,7 +224,7 @@ def sbd_reg():
     
     success = (bool(random.getrandbits(1)))
     if registered == REG_STATUS_REGISTERED:
-        print 'Already registered'
+        print('Already registered')
         error_text = ',0'
     else:
         if success:
@@ -234,21 +234,21 @@ def sbd_reg():
             registered = REG_STATUS_NOT_REGISTER
             error_text = ',17' #TODO: add more sophisticated failures
     
-    ser.write("\nSBDREG:%d%s\r\n" % (registered,error_text))
+    ser.write(("\nSBDREG:%d%s\r\n" % (registered,error_text)).encode('utf-8'))
     send_ok()
     
 def check_reg_status():
-    ser.write("\n+SBDREG:%d\r\n" % (registered))
+    ser.write(("\n+SBDREG:%d\r\n" % (registered)).encode('utf-8'))
     send_ok()
     
 def sbd_det():
-    print 'Detached'
+    print('Detached')
     registered = True
     send_ok()
     
 def read_text():
     global mt_buffer
-    ser.write("\n+SBDRT:\r\n%s\r\n" % (mt_buffer))
+    ser.write(("\n+SBDRT:\r\n%s\r\n" % (mt_buffer)).encode('utf-8'))
     send_ok()
 
 def read_binary():
@@ -258,34 +258,34 @@ def read_binary():
     mt_buffer_sum = sum(bytearray(mt_buffer)) 
     checksum_msb =  ((mt_buffer_sum & (2**16-1)) / (255) ) & 255
     checksum_lsb =  ((mt_buffer_sum & (2**16-1)) / (1) ) & 255
-    print "Device is reading binary from MT buffer: ",mt_buffer
+    print("Device is reading binary from MT buffer: ",mt_buffer)
     #array.array
     #ser.write(len_msb)
     #ser.write(len_lsb)
     #ser.write(mt_buffer)
     #ser.write(checksum_msb)
     #ser.write(checksum_lsb)
-    ser.write("%s%s%s%s%s" % (chr(len_msb), chr(len_lsb), mt_buffer,chr(checksum_msb),chr(checksum_lsb)) )
-    print "\r\n%s%s%s%s%s" % (chr(len_msb), chr(len_lsb), mt_buffer,chr(checksum_msb),chr(checksum_lsb))
-    print checksum_msb, checksum_lsb, len_msb, len_lsb, mt_buffer
+    ser.write(("%s%s%s%s%s" % (chr(len_msb), chr(len_lsb), mt_buffer,chr(checksum_msb),chr(checksum_lsb)) ).encode('utf-8'))
+    print("\r\n%s%s%s%s%s" % (chr(len_msb), chr(len_lsb), mt_buffer,chr(checksum_msb),chr(checksum_lsb)))
+    print(checksum_msb, checksum_lsb, len_msb, len_lsb, mt_buffer)
     send_ok()
     
 
 def send_ok():
     global ser
-    ser.write('\r\nOK\r\n')
-    print "Sending OK"
+    ser.write(b'\r\nOK\r\n')
+    print("Sending OK")
     
 def send_error():
     global ser
-    ser.write('\r\nERROR\r\n')
+    ser.write(b'\r\nERROR\r\n')
 
 def send_ready():
     global ser
-    ser.write('\r\nREADY\r\n')
+    ser.write(b'\r\nREADY\r\n')
 
 def do_ok():
-    print 'Received blank command'
+    print('Received blank command')
     send_ok()
 
 def clear_buffers(buffer):
@@ -297,19 +297,19 @@ def clear_buffers(buffer):
     if buffer == 0:
         mo_buffer = ''
         mo_set = False
-        ser.write('\r\n0\r\n')
+        ser.write(b'\r\n0\r\n')
         send_ok()
     elif buffer == 1:
         mt_buffer = ''
         mt_set = False
-        ser.write('\r\n0\r\n')
+        ser.write(b'\r\n0\r\n')
         send_ok()
     elif buffer == 2:
         mt_buffer = ''
         mo_buffer = ''
         mo_set = False
         mt_set = False
-        ser.write('\r\n0\r\n')
+        ser.write(b'\r\n0\r\n')
         send_ok()
     else:
         send_error()
@@ -317,7 +317,7 @@ def clear_buffers(buffer):
 
 def clear_momsn():
     momsn = 0
-    ser.write('\r\n0\r\n')
+    ser.write(b'\r\n0\r\n')
 
 def get_sbd_status():
     global mt_set
@@ -343,7 +343,7 @@ def get_sbd_status():
         
     return_string = "\nSBDS:%d,%d,%d,%d\r\n" % (mo_flag, momsn, mt_flag, mtmsn)
 
-    ser.write(return_string)
+    ser.write(return_string.encode('utf-8'))
     send_ok()
 
 def copy_mo_to_mt():
@@ -353,21 +353,21 @@ def copy_mo_to_mt():
     mt_buffer = mo_buffer
     
     return_string = "\nSBDTC: Outbound SBD Copied to Inbound SBD: size = %d\r\n" % (len(mo_buffer))
-    ser.write(return_string)
+    ser.write(return_string.encode('utf-8'))
     
     send_ok()
     
 def which_gateway():
     return_string = "\rSBDGW:EMSS\r\n"
 
-    ser.write(return_string)
+    ser.write(return_string.encode('utf-8'))
     send_ok()
 
 def get_system_time():
     return_string = "\r\n---MSSTM: 01002000\r\n"
-    ser.write(return_string)
+    ser.write(return_string.encode('utf-8'))
     send_ok()
-    print 'We havent actually implemented MSSTM this yet.'
+    print('We havent actually implemented MSSTM this yet.')
     
 def set_ring_indicator(cmd,start_index):
     global ring_enable
@@ -388,40 +388,40 @@ def set_ring_indicator(cmd,start_index):
 def get_signal_strength():
     return_string = "\r\n+CSQ:%d\r\n" % 5#(random.randint(0,5))
     time.sleep(AVERAGE_SBDIX_DELAY)
-    ser.write(return_string)
+    ser.write(return_string.encode('utf-8'))
     send_ok()
 
 def get_valid_rssi():
     return_string = "\n+CSQ:(0-5)\r\n"
-    ser.write(return_string)
+    ser.write(return_string.encode('utf-8'))
     send_ok()
 
 def get_lock_status():
     global locked
     
     return_string = "\n+CULK:%d\r\n" % ( locked ) 
-    ser.write(return_string)
+    ser.write(return_string.encode('utf-8'))
     send_ok()    
     
 def get_manufacturer():
     return_string = "\n+Iridium\r\n" 
-    ser.write(return_string)
+    ser.write(return_string.encode('utf-8'))
     send_ok() 
     
 def get_model():
     return_string = "\nIRIDIUM 9600 Family SBD Transceiver\r\n"
-    ser.write(return_string)
+    ser.write(return_string.encode('utf-8'))
     send_ok() 
     
 def get_gsn():
     return_string = "\n300234060604220\r\n"
-    ser.write(return_string)
+    ser.write(return_string.encode('utf-8'))
     send_ok() 
     
 def get_gmr():
     return_string = "\n3Call Processor Version: Long string\r\n"
-    print 'Warning: get_gmr function not fully implemented'
-    ser.write(return_string)
+    print('Warning: get_gmr function not fully implemented')
+    ser.write(return_string.encode('utf-8'))
     send_ok() 
     
 def write_binary_start(cmd,start_index):
@@ -432,11 +432,11 @@ def write_binary_start(cmd,start_index):
     try:
         binary_rx_incoming_bytes = int(text)
         if (binary_rx_incoming_bytes > 340):
-            ser.write('\r\r\n3\r\n')
+            ser.write(b'\r\r\n3\r\n')
             send_ok()
             binary_rx_incoming_bytes = 0
         else:
-            print 'Ready to receive {} bytes'.format(binary_rx_incoming_bytes)
+            print('Ready to receive {} bytes'.format(binary_rx_incoming_bytes))
             send_ready()
             binary_rx = True
     except:
@@ -448,7 +448,7 @@ def parse_cmd(cmd):
     index = cmd.find('=')
     if index == -1:
         index = cmd.find('\r')
-    cmd_type = cmd[0:index].lower()
+    cmd_type = cmd[0:index].lower().strip() #added this strip
     
     #print cmd_type
     
@@ -484,7 +484,9 @@ def parse_cmd(cmd):
     elif cmd_type == 'ate1'    : do_ok()
     elif cmd_type == 'at&d0'    : do_ok()
     elif cmd_type == 'at&k0'    : do_ok()
-    else : send_error()
+    else : 
+        #print "Wrong command:", cmd_type
+        send_error()
     
 
 def open_port(dev,baudrate):
@@ -496,7 +498,7 @@ class MobileTerminatedHandler(asyncore.dispatcher_with_send):
         asyncore.dispatcher_with_send.__init__(self, sock)
         self.client = None
         self.addr = addr
-	self.data = ""
+        self.data = ""
         self.msg_length = 0
         self.preheader_fmt = '!bH'
         self.preheader_size = struct.calcsize(self.preheader_fmt)
@@ -511,21 +513,21 @@ class MobileTerminatedHandler(asyncore.dispatcher_with_send):
         else:
             self.data += self.recv(self.msg_length)
         
-        print self.msg_length
-        print self.data.encode("hex")
+        print(self.msg_length)
+        print(self.data.encode("hex"))
             
         if len(self.data) >= self.msg_length:
             mt_packet = None
             try: 
                 mt_packet = parse_mt_directip_packet(self.data, mt_messages)
             except:
-                print 'MT Handler: Invalid message'
+                print('MT Handler: Invalid message')
             # response message
             self.send(assemble_mt_directip_response(mt_packet, mt_messages))
             self.handle_close()
 
     def handle_close(self):
-        print 'MT Handler: Connection closed from %s' % repr(self.addr)
+        print('MT Handler: Connection closed from %s' % repr(self.addr))
         sys.stdout.flush()
         self.close()
 
@@ -543,12 +545,12 @@ class MobileTerminatedServer(asyncore.dispatcher):
         pair = self.accept()
         if pair is not None:
             sock, addr = pair
-            print 'MT Handler: Incoming connection from %s' % repr(addr)
+            print('MT Handler: Incoming connection from %s' % repr(addr))
             sys.stdout.flush()
         try:
             handler = MobileTerminatedHandler(sock, addr)
         except: 
-            print "MT Handler: Unexpected error:", sys.exc_info()[0]
+            print("MT Handler: Unexpected error:", sys.exc_info()[0])
 
     
 
@@ -598,21 +600,21 @@ def main():
     #check for valid arguments
     if options.mode == "EMAIL":
         if options.passwd is None  or options.user is None or options.recipient is None or options.in_srv is None or options.out_srv is None:
-            print 'If you want to use e-mail, you must specify in/out servers, user, password, and recipient address.'
+            print('If you want to use e-mail, you must specify in/out servers, user, password, and recipient address.')
             sys.exit()
         else:
             email_enabled = True
     elif options.mode == "HTTP_POST":
-        print 'Not implemented yet'
+        print('Not implemented yet')
         sys.exit()
     elif options.mode == "IP":
-        print 'Using IP mode with MO ({}:{}) and MT (0.0.0.0:{}) servers'.format(options.mo_ip, int(options.mo_port), options.mt_port)
+        print('Using IP mode with MO ({}:{}) and MT (0.0.0.0:{}) servers'.format(options.mo_ip, int(options.mo_port), options.mt_port))
         server = MobileTerminatedServer('0.0.0.0', mt_port)
-        print "Started MT Server on port {}".format(mt_port)
+        print("Started MT Server on port {}".format(mt_port))
         sys.stdout.flush()
         ip_enabled = True
     else:
-        print "No valid mode specified"
+        print("No valid mode specified")
         sys.exit()
     
     
@@ -632,7 +634,7 @@ def main():
     try:
         ser = open_port(options.dev,19200)
     except:
-        print "Could not open serial port.  Exiting."
+        print("Could not open serial port.  Exiting.")
 #        print "FYI - Here's a list of ports on your system."
 #        print list_serial_ports()
         sys.exit()
@@ -654,11 +656,11 @@ def main():
             ser.write(new_char)
             
         if not binary_rx:
-            rx_buffer = rx_buffer + new_char
-            #look for eol char, #TODO figure out what is really devined as EOL for iridium modem
-            if new_char == chr(EOL_CHAR):
+            rx_buffer += new_char.decode('utf-8')
+             #look for eol char, #TODO figure out what is really devined as EOL for iridium modem
+            if new_char.decode('utf-8') == chr(EOL_CHAR):
                 if(len(rx_buffer) > 2):
-                    print "Here is what I received:%s" % (rx_buffer)
+                    print("Here is what I received:%s" % (rx_buffer))
                     parse_cmd(rx_buffer)
                     rx_buffer = ''
                 else:
@@ -679,18 +681,18 @@ def main():
                 now_get_checksum_second = False
                 #check the checksum
                 if (checksum_first * 256 + checksum_second) == (binary_checksum & (2**16-1)):
-                    print "Good binary checksum"
-                    ser.write('\r\n0\r\n')
+                    print("Good binary checksum")
+                    ser.write(b'\r\n0\r\n')
                     send_ok()
                     mo_buffer = rx_buffer
                     rx_buffer = ''
                     mo_set = True
                 else:
-                    print "Bad binary checksum"
-                    ser.write('\r\n2\r\n')
+                    print("Bad binary checksum")
+                    ser.write(b'\r\n2\r\n')
                     send_ok()
                     rx_buffer = ''
-                    ser.write('\n')            
+                    ser.write(b'\n')            
                 binary_checksum = 0
                 binary_rx = False
             else:

@@ -37,7 +37,7 @@ class ConditionalForwardHandler(asyncore.dispatcher_with_send):
     def handle_read(self):
         data = self.recv(256)
         
-        print data.encode("hex")
+        print(data.encode("hex"))
 
         if not data:
             return
@@ -55,7 +55,7 @@ class ConditionalForwardHandler(asyncore.dispatcher_with_send):
                 self.line_process(line)
 
     def handle_close(self):
-        print 'Connection closed from %s' % repr(self.addr)
+        print('Connection closed from %s' % repr(self.addr))
         sys.stdout.flush()
         self.close()
 
@@ -78,7 +78,7 @@ class ConditionalForwardHandler(asyncore.dispatcher_with_send):
     def sbd_send_bytes(self, bytes):
         self.sbd_bytes_remaining -= len(bytes)
         self.sbd_client.send(bytes)
-        print self.sbd_bytes_remaining
+        print(self.sbd_bytes_remaining)
         if self.sbd_bytes_remaining <= 0:
             self.sbd_write = False
 
@@ -95,12 +95,12 @@ class ConditionalForwardServer(asyncore.dispatcher):
         pair = self.accept()
         if pair is not None:
             sock, addr = pair
-            print 'Incoming connection from %s' % repr(addr)
+            print('Incoming connection from %s' % repr(addr))
             sys.stdout.flush()
         try:
             handler = ConditionalForwardHandler(sock, addr)
         except: 
-            print "Unexpected error:", sys.exc_info()[0]
+            print("Unexpected error:", sys.exc_info()[0])
             
 import sys
 

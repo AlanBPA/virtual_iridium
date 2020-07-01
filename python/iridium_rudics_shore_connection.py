@@ -18,7 +18,7 @@ def main():
     parser.add_option("-P", "--shore_port", dest="shore_port", action="store", help="Shore driver Port")
 
     (options, args) = parser.parse_args()
-    print options
+    print(options)
 
     connected = False
     buffer_size = 1024
@@ -38,32 +38,32 @@ def main():
                     if(len(shore_data) > 0):
                         hayes_socket.send(shore_data)
                     else:
-                        print "Zero read"
+                        print("Zero read")
                         connected = False
                         close_hayes_socket(hayes_socket)
                 except socket.timeout:
                     pass
                 except socket.error as e:
-                    print "Shore socket error: ",e
+                    print("Shore socket error: ",e)
                     connected = False
                     close_hayes_socket(hayes_socket, connected)
 
             data = hayes_socket.recv(buffer_size)
-            print data
+            print(data)
 
             if("NO CARRIER" in data):
-                print "Disconnected!"
+                print("Disconnected!")
                 connected = False
                 shore_socket.close()
                 
             if connected and len(data) > 0:
                 try:
-                    print "To Shore: ",data.encode("hex")
+                    print("To Shore: ",data.encode("hex"))
                     shore_socket.send(data)
                 except socket.timeout:
-                    print "Timeout sending data"
+                    print("Timeout sending data")
                 except socket.error as e:
-                    print "Shore socket error: ",e
+                    print("Shore socket error: ",e)
                     connected = False
                     hayes_socket.send("+++");        
                     time.sleep(2)
@@ -72,7 +72,7 @@ def main():
             if(data.strip() == "RING"):
                 hayes_socket.send("ATA\r\n");        
             elif("CONNECT" in data):
-                print "Connected!"
+                print("Connected!")
                 shore_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
                 shore_socket.settimeout(0.1)
                 shore_socket.connect((options.shore_address, int(options.shore_port)))
@@ -81,7 +81,7 @@ def main():
         except socket.timeout:
             time.sleep(0.01)
         except socket.error as e:
-            print e
+            print(e)
 
 
 if __name__ == '__main__':

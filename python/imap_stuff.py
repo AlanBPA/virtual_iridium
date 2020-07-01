@@ -2,7 +2,6 @@
 #v+
 #!/usr/bin/env python
 
-import imaplib
 import email
 import imaplib
 

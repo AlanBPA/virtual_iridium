@@ -6,7 +6,7 @@
 
 import asyncore
 import socket
-from virtual_iridium.sbd_packets import parse_mt_directip_packet
+from sbd_packets import parse_mt_directip_packet
 from collections import deque
 import struct
 
@@ -52,8 +52,8 @@ class ConditionalSBDForwardHandler(asyncore.dispatcher_with_send):
         else:
             self.data += self.recv(self.msg_length)
         
-        print self.msg_length
-        print self.data.encode("hex")
+        print(self.msg_length)
+        print(self.data.encode("hex"))
             
         if len(self.data) >= self.msg_length:
             mt_packet = None
@@ -61,23 +61,23 @@ class ConditionalSBDForwardHandler(asyncore.dispatcher_with_send):
             try: 
                 mt_packet = parse_mt_directip_packet(self.data, mt_messages)
             except:
-                print 'MT Handler: Invalid message'
+                print('MT Handler: Invalid message')
                 sys.stdout.flush()
                 
             imei = mt_packet[0][1]
                 
-            print 'Attempting to forward message for imei: {}' .format(imei)
+            print('Attempting to forward message for imei: {}' .format(imei))
 
             if forward_address.has_key(imei):
                 self.client = ConditionalSBDForwardClient(self, forward_address[imei][0], forward_address[imei][1])
                 self.client.send(self.data)
                 self.data = ''
             else:
-                print 'No forwarding set up for imei: {}'.format(imei)
+                print('No forwarding set up for imei: {}'.format(imei))
                 self.close()
 
     def handle_close(self):
-        print 'Connection closed from %s' % repr(self.addr)
+        print('Connection closed from %s' % repr(self.addr))
         sys.stdout.flush()
         if self.client is not None:
             self.client.close()
@@ -97,16 +97,16 @@ class ConditionalSBDForwardServer(asyncore.dispatcher):
         pair = self.accept()
         if pair is not None:
             sock, addr = pair
-            print 'Incoming connection from %s' % repr(addr)
+            print('Incoming connection from %s' % repr(addr))
             sys.stdout.flush()
         try:
             handler = ConditionalSBDForwardHandler(sock, addr)
         except: 
-            print "Unexpected error:", sys.exc_info()[0]
+            print("Unexpected error:", sys.exc_info()[0])
             
 import sys
-print "Iridium SBD Port forwarder starting up ..."
-print "Listening for SBD on port: %d" % mt_sbd_port
+print("Iridium SBD Port forwarder starting up ...")
+print("Listening for SBD on port: %d" % mt_sbd_port)
 
 
 sys.stdout.flush()
