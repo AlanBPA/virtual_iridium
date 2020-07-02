@@ -11,7 +11,7 @@ def checkMessages(incoming_server, user, password,imsi):
     obj.login(user, password)
     obj.select('Inbox')  
     typ ,data = obj.search(None,'UnSeen')
-    string = data[0]
+    string = data[0].decode('utf-8')
     msg_count = len(string.split(' '))
     index = string.find(' ')
     if not index == -1:
@@ -24,7 +24,7 @@ def checkMessages(incoming_server, user, password,imsi):
         
         #get attachment
         text = data[0][1]
-        msg = email.message_from_string(text)
+        msg = email.message_from_string(text.encode('utf-8'))
         for part in msg.walk():
             if part.get_content_maintype() == 'multipart':
                 continue

@@ -108,7 +108,7 @@ Message is Attached.'\
     #message is included as an attachment
     attachment = 'text.sbd'
     fd = open(attachment, 'wb')
-    fd.write(mo_buffer)
+    fd.write(mo_buffer.encode('utf-8'))
     fd.close()
     
     sendMail(subject, body, user, recipient, password, outgoing_server, attachment)
@@ -448,7 +448,7 @@ def parse_cmd(cmd):
     index = cmd.find('=')
     if index == -1:
         index = cmd.find('\r')
-    cmd_type = cmd[0:index].lower().strip() #added this strip
+    cmd_type = cmd[0:index].lower()
     
     #print cmd_type
     
@@ -673,14 +673,16 @@ def main():
         else:
             if now_get_checksum_first:
                 checksum_first = ord(new_char)
+                print("Got checksum1:", new_char)
                 now_get_checksum_first = False
                 now_get_checksum_second = True
             elif now_get_checksum_second:
                 checksum_second = ord(new_char)
+                print("Got checksum2:", new_char)
                 now_get_checksum_first = False
                 now_get_checksum_second = False
                 #check the checksum
-                if (checksum_first * 256 + checksum_second) == (binary_checksum & (2**16-1)):
+                if ((checksum_first << 8) | checksum_second) == (binary_checksum & 0xFFFF):
                     print("Good binary checksum")
                     ser.write(b'\r\n0\r\n')
                     send_ok()
@@ -696,14 +698,14 @@ def main():
                 binary_checksum = 0
                 binary_rx = False
             else:
-                if binary_rx_incoming_bytes == 1:
+                if binary_rx_incoming_bytes == 3:
                     now_get_checksum_first = True
-                    binary_checksum = binary_checksum + ord(new_char)
-                    rx_buffer = rx_buffer + new_char
+                    binary_checksum += ord(new_char)
+                    rx_buffer += new_char.decode('utf-8')
                 else:
                     binary_rx_incoming_bytes -= 1
-                    rx_buffer = rx_buffer + new_char
-                    binary_checksum = binary_checksum + ord(new_char)
+                    rx_buffer += new_char.decode('utf-8')
+                    binary_checksum += ord(new_char)
                 
              
                 
