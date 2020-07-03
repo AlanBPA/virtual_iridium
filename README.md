@@ -17,6 +17,17 @@ In your Unix shell of choice:
  $ git clone https://github.com/AlanBPA/virtual_iridium
 ```
 
+## Constantly updated
+
+At the moment this repository is being constantly updated, to check if your downloaded branch is up to date run the following:
+```
+$ git status
+```
+
+If your branch is **not** up to date, you can get the latest update with:
+```
+$ git pull origin master
+```
 
 # How to use it with an external device
 
