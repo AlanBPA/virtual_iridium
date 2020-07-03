@@ -21,6 +21,7 @@ In your Unix shell of choice:
 
 At the moment this repository is being constantly updated, to check if your downloaded branch is up to date run the following:
 ```
+$ cd /path/to/virtual_iridium
 $ git status
 ```
 
@@ -96,7 +97,12 @@ Sent: <test_message2> to port /dev/zero
 Send message or write -x to exit 
 ...
 ```
-It will first ask for the name of the port to send the serial data through, once the port is provided, you can send a message by writing it and then pressing Enter (the script will automatically add a \r character at the end of the message, to omit this, write "-r message" instead). You can also change the name of the port used by writing "-c new_port" and exit the script with "-x":
+If an error appears when running the script, try running the following first:
+```
+$ chmod u+x send_at.sh
+```
+
+If the script works correctly, it will first ask for the name of the port to send the serial data through, once the port is provided, you can send a message by writing it and then pressing Enter (the script will automatically add a \r character at the end of the message, to omit this, write "-r message" instead). You can also change the name of the port used by writing "-c new_port" and exit the script with "-x":
 ```
 Send message or write -x to exit
 -c /dev/pts/4
