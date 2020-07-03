@@ -45,7 +45,7 @@ date hour socat[5463] N PTY is /dev/pts/2
 date hour socat[5463] N PTY is /dev/pts/3
 date hour socat[5463] N starting data transfer loop with FDs [5,5] and [7,7]
 ```
-In this example we have the virtual serial ports /dev/pts/2 and /dev/pts/3. We will give one of the ports to the emulator to send and receive serial data in a new terminal (terminal_1):
+In this example the created virtual serial ports /dev/pts/2 and /dev/pts/3. Give one of the ports to the emulator to send and receive serial data in a new terminal (terminal_1):
 ```
 $ cd /path/to/virtual_iridium/python                                                                                                      
 $ python Iridium9602.py -d /dev/pts/2 -u youraccount@gmail.com -p your_password -i imap.gmail.com -o smtp.gmail.com -r your_iri    dium_test_account@gmail.com -m EMAIL
@@ -56,16 +56,16 @@ To receive serial data through the other virtual serial port, open a new termina
 $ cat < /dev/pts/3
 ```
 
-And to send serial data through the other port we can use:
+And to send serial data through the other port you can use:
 ```
 $ echo -en "message123" > /dev/pts/3
 ```
-The -en option is to recognize \ as an escape character and to omit sending a newline character at the end. Because you need to write that same line for every message sent through the port, there is a little script to simplify the process:
+The -en option is to recognize \ as an escape character and to omit sending a newline character at the end. Because you need to write that same line for every message sent through the port, there is a little script included to simplify the process:
 ```
 $ cd /path/to/virtual_iridium/python
 $ ./send_at.sh
 ```
-This script will show something like this:
+This script will print something like this:
 ```
 Introduce Virtual Serial Port to send data:
 /dev/pts/3
@@ -85,7 +85,7 @@ Sent: <test_message2> to port /dev/zero
 Send message or write -x to exit 
 ...
 ```
-It will first ask for the name of the port to send the serial data through, once the port is provided, we can send a message by writing it and then pressing Enter (the script will automatically add a \r character at the end of the message, to omit this, write "-r message" instead). We can also change the name of the port used by writing "-c new_port" and exit the script with "-x":
+It will first ask for the name of the port to send the serial data through, once the port is provided, you can send a message by writing it and then pressing Enter (the script will automatically add a \r character at the end of the message, to omit this, write "-r message" instead). You can also change the name of the port used by writing "-c new_port" and exit the script with "-x":
 ```
 Send message or write -x to exit
 -c /dev/pts/4
