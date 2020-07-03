@@ -150,6 +150,8 @@ Exiting...
 * AT&D0
 * AT&K0
 
+
 # More about 9602
 
 This emulator is based on the [Developer's Guide](https://www.satcom.pro/upload/iblock/757/IRDM_IridiumSBDService_V3_DEVGUIDE_9Mar2012.pdf).
+If something goes wrong, please contact me at abpa.alan@gmail.com.
