@@ -4,6 +4,8 @@ This is a Iridium Modem (9602/9603) emulator to make it possible to test your ow
 
 This application is written in Python language uses pyserial to implement a serial communications interface. The emulator matches the behavior of the Iridium 9602 modem which is available from NAL Research and Rock7Mobile (as Rockblock). The emulator will respond to at commands to write data, execute short-burst data (SBD) sessions, and most of the other functions supported by the 9602 serial interface.
 
+The original autor is J.Malsbury, this is a fork from the OpenUAS repository.
+
 # What's the use?
 
 If you want to develop an application on a PC or an embedded device it will to talk to an Iridium modem, you can use this for initial prototyping and testing. This can potentially save quite some cost on Iridium service charges. Also you can already create an application without already buying the real Iridium Modem (9602/9603) hardware.
@@ -76,9 +78,14 @@ test_message1
 Sent: <test_message1> to port /dev/pts/3
 
 Send message or write -x to exit
+-r test_message2
+
+Sent: <test_message2> to port /dev/zero
+
+Send message or write -x to exit 
 ...
 ```
-It will first ask for the name of the port to send the serial data through, once the port is provided, we can send a message by writing it and then pressing Enter. We can also change the name of the port used by writing "-c new_port" and exit the script with "-x":
+It will first ask for the name of the port to send the serial data through, once the port is provided, we can send a message by writing it and then pressing Enter (the script will automatically add a \r character at the end of the message, to omit this, write "-r message" instead). We can also change the name of the port used by writing "-c new_port" and exit the script with "-x":
 ```
 Send message or write -x to exit
 -c /dev/pts/4
@@ -90,3 +97,36 @@ Send message or write -x to exit
 Exiting...
 ```
 
+# Accepted AT commands
+
+* AT+CSQ
+* AT+CSQ=?
+* AT+CULK?
+* AT+GMI
+* AT+GMN
+* AT+GSN
+* AT+GMR
+* AT+SBDWT
+* AT+SBDWB
+* AT+SBDI
+* AT+SBDIX
+* AT+SBDREG
+* AT+SBDREG?
+* AT+SBDDET
+* AT+SBDRT
+* AT+SBDRB
+* AT+SBDD0
+* AT+SBDD1
+* AT+SBDD2
+* AT+SBDC
+* AT+SBDS
+* AT+SBDTC
+* AT+SBDGW
+* AT-MSSTM
+* AT+SBDMTA
+* ATEn
+* ATIn
+
+# More about 9602
+
+This emulator is based on the [Developer's Guide](https://www.satcom.pro/upload/iblock/757/IRDM_IridiumSBDService_V3_DEVGUIDE_9Mar2012.pdf).

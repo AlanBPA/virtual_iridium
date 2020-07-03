@@ -76,6 +76,8 @@ http_post_enabled = False
 
 mt_messages = deque()
 
+device_info = ["2400", "0000", "OK", "XXXXXXXX", "IRIDIUM 9600 Family", "8816", "XXX", "XXXXXXXX"]
+
 def send_mo_email():
     global lat
     global lon
@@ -430,15 +432,25 @@ def write_binary_start(cmd,start_index):
     
     text = cmd[start_index:len(cmd)-1]
     try:
-        binary_rx_incoming_bytes = int(text)
-        if (binary_rx_incoming_bytes > 340):
+        binary_rx_incoming_bytes = int(text) + 2
+        if (binary_rx_incoming_bytes > 342 or binary_rx_incoming < 3):
             ser.write(b'\r\r\n3\r\n')
             send_ok()
             binary_rx_incoming_bytes = 0
         else:
-            print('Ready to receive {} bytes'.format(binary_rx_incoming_bytes))
+            print('Ready to receive {} bytes'.format(binary_rx_incoming_bytes-2))
             send_ready()
             binary_rx = True
+    except:
+        send_error()
+
+def send_device_info(n):
+    global ser
+    try:
+        n = int(n)
+        print("Sending device information: {}".format(n))
+        ser.write(('\n' + device_info[n] + '\r').encode('utf-8'))    
+        send_ok()
     except:
         send_error()
 
@@ -448,7 +460,7 @@ def parse_cmd(cmd):
     index = cmd.find('=')
     if index == -1:
         index = cmd.find('\r')
-    cmd_type = cmd[0:index].lower()
+    cmd_type = cmd[:index].lower()
     
     #print cmd_type
     
@@ -481,9 +493,12 @@ def parse_cmd(cmd):
     elif cmd_type == 'ate0' or cmd_type == 'ate': 
         echo = False
         do_ok()
-    elif cmd_type == 'ate1'    : do_ok()
+    elif cmd_type == 'ate1'    : 
+        echo = True
+        do_ok()
     elif cmd_type == 'at&d0'    : do_ok()
     elif cmd_type == 'at&k0'    : do_ok()
+    elif cmd_type[:-1] == 'ati' : send_device_info(cmd_type[-1])
     else : 
         #print "Wrong command:", cmd_type
         send_error()
@@ -673,12 +688,10 @@ def main():
         else:
             if now_get_checksum_first:
                 checksum_first = ord(new_char)
-                print("Got checksum1:", new_char)
                 now_get_checksum_first = False
                 now_get_checksum_second = True
             elif now_get_checksum_second:
                 checksum_second = ord(new_char)
-                print("Got checksum2:", new_char)
                 now_get_checksum_first = False
                 now_get_checksum_second = False
                 #check the checksum
