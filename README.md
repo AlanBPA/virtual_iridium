@@ -99,6 +99,7 @@ Exiting...
 
 # Accepted AT commands
 
+## Implemented
 * AT+CSQ
 * AT+CSQ=?
 * AT+CULK?
@@ -126,6 +127,11 @@ Exiting...
 * AT+SBDMTA
 * ATEn
 * ATIn
+
+## Blank commands
+* AT
+* AT&D0
+* AT&K0
 
 # More about 9602
 
