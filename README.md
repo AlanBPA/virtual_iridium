@@ -72,7 +72,11 @@ And to send serial data through the other port you can use:
 ```
 $ echo -en "message123" > /dev/pts/3
 ```
-The -en option is to recognize \ as an escape character and to omit sending a newline character at the end. Because you need to write that same line for every message sent through the port, there is a little script included to simplify the process:
+The -en option is to recognize \ as an escape character and to omit sending a newline character at the end. 
+
+## Simple script for sending messages through port
+
+Because you need to write that same line for every message sent through the port, there is a little script included to simplify the process:
 ```
 $ cd /path/to/virtual_iridium/python
 $ ./send_at.sh

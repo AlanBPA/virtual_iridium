@@ -11,11 +11,11 @@ def checkMessages(incoming_server, user, password,imsi):
     obj.login(user, password)
     obj.select('Inbox')  
     typ ,data = obj.search(None,'UnSeen')
-    string = data[0].decode('utf-8')
-    msg_count = len(string.split(' '))
-    index = string.find(' ')
+    string = data[0]
+    msg_count = len(string.split(b' '))
+    index = string.find(b' ')
     if not index == -1:
-        string = string[:string.find(' ')]
+        string = string[:string.find(b' ')]
     if(msg_count >= 1 and len(string) > 0):
         obj.store(string,'+FLAGS','\Seen')
         typ, data = obj.fetch(string, '(RFC822)')
@@ -24,7 +24,7 @@ def checkMessages(incoming_server, user, password,imsi):
         
         #get attachment
         text = data[0][1]
-        msg = email.message_from_string(text.encode('utf-8'))
+        msg = email.message_from_string(text)
         for part in msg.walk():
             if part.get_content_maintype() == 'multipart':
                 continue

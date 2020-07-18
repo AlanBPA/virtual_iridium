@@ -42,7 +42,7 @@ binary_rx_incoming_bytes = 0
 ring_enable = False
 
 mt_buffer = ''
-mo_buffer = ''
+mo_buffer = b''
 mo_set = False
 mt_set = True
 
@@ -110,7 +110,7 @@ Message is Attached.'\
     #message is included as an attachment
     attachment = 'text.sbd'
     fd = open(attachment, 'wb')
-    fd.write(mo_buffer.encode('utf-8'))
+    fd.write(mo_buffer)
     fd.close()
     
     sendMail(subject, body, user, recipient, password, outgoing_server, attachment)
@@ -135,8 +135,8 @@ Message is Attached.'\
 def write_text(cmd,start_index):
     global mo_set
     global mo_buffer
-    text = cmd[start_index:len(cmd)-1]
-    mo_buffer = text
+    text = cmd[start_index:-1]
+    mo_buffer = text.encode()
     mo_set = True
     send_ok()
 
@@ -171,7 +171,7 @@ def sbdix():
         #use e-mail interface if specified
         if email_enabled:
             #send e-mail if outgoing data is present
-            if mo_set and not mo_buffer == "":
+            if mo_set and not mo_buffer == b'':
                 if email_enabled:
                     send_mo_email()
                 mo_set = False
@@ -297,7 +297,7 @@ def clear_buffers(buffer):
     global mt_buffer
     
     if buffer == 0:
-        mo_buffer = ''
+        mo_buffer = b''
         mo_set = False
         ser.write(b'\r\n0\r\n')
         send_ok()
@@ -308,7 +308,7 @@ def clear_buffers(buffer):
         send_ok()
     elif buffer == 2:
         mt_buffer = ''
-        mo_buffer = ''
+        mo_buffer = b''
         mo_set = False
         mt_set = False
         ser.write(b'\r\n0\r\n')
@@ -430,10 +430,14 @@ def write_binary_start(cmd,start_index):
     global binary_rx_incoming_bytes
     global binary_rx 
     
-    text = cmd[start_index:len(cmd)-1]
+    text = cmd[start_index:-1]
     try:
         binary_rx_incoming_bytes = int(text) + 2
-        if (binary_rx_incoming_bytes > 342 or binary_rx_incoming < 3):
+    except ValueError:
+        print("Invalid conversion, received: {}".format(text))
+        send_error()
+    else:
+        if (binary_rx_incoming_bytes > 342 or binary_rx_incoming_bytes < 3):
             ser.write(b'\r\r\n3\r\n')
             send_ok()
             binary_rx_incoming_bytes = 0
@@ -441,8 +445,6 @@ def write_binary_start(cmd,start_index):
             print('Ready to receive {} bytes'.format(binary_rx_incoming_bytes-2))
             send_ready()
             binary_rx = True
-    except:
-        send_error()
 
 def send_device_info(n):
     global ser
@@ -457,6 +459,7 @@ def send_device_info(n):
 def parse_cmd(cmd):
     global echo
     #get string up to newline or '=' 
+    cmd = cmd.decode('utf-8')
     index = cmd.find('=')
     if index == -1:
         index = cmd.find('\r')
@@ -654,7 +657,7 @@ def main():
 #        print list_serial_ports()
         sys.exit()
     
-    rx_buffer = ''
+    rx_buffer = []
     
     binary_checksum = 0
     
@@ -671,15 +674,15 @@ def main():
             ser.write(new_char)
             
         if not binary_rx:
-            rx_buffer += new_char.decode('utf-8')
+            rx_buffer.append(new_char)
              #look for eol char, #TODO figure out what is really devined as EOL for iridium modem
-            if new_char.decode('utf-8') == chr(EOL_CHAR):
+            if new_char == bytes([EOL_CHAR]):
                 if(len(rx_buffer) > 2):
-                    print("Here is what I received:%s" % (rx_buffer))
-                    parse_cmd(rx_buffer)
-                    rx_buffer = ''
+                    print("Here is what I received:{!r}".format(b''.join(rx_buffer).decode('utf-8')))
+                    parse_cmd(b''.join(rx_buffer))
+                    rx_buffer = []
                 else:
-                    rx_buffer = ''
+                    rx_buffer = []
 
             #process backspace
             elif new_char == chr(BACKSPACE_CHAR) and not binary_rx:
@@ -697,16 +700,18 @@ def main():
                 #check the checksum
                 if ((checksum_first << 8) | checksum_second) == (binary_checksum & 0xFFFF):
                     print("Good binary checksum")
+                    binary_checksum = 0
                     ser.write(b'\r\n0\r\n')
                     send_ok()
-                    mo_buffer = rx_buffer
-                    rx_buffer = ''
+                    mo_buffer = b''.join(rx_buffer)
+                    rx_buffer = []
                     mo_set = True
                 else:
                     print("Bad binary checksum")
+                    binary_checksum = 0
                     ser.write(b'\r\n2\r\n')
                     send_ok()
-                    rx_buffer = ''
+                    rx_buffer = []
                     ser.write(b'\n')            
                 binary_checksum = 0
                 binary_rx = False
@@ -714,10 +719,10 @@ def main():
                 if binary_rx_incoming_bytes == 3:
                     now_get_checksum_first = True
                     binary_checksum += ord(new_char)
-                    rx_buffer += new_char.decode('utf-8')
+                    rx_buffer.append(new_char)
                 else:
                     binary_rx_incoming_bytes -= 1
-                    rx_buffer += new_char.decode('utf-8')
+                    rx_buffer.append(new_char)
                     binary_checksum += ord(new_char)
                 
              
